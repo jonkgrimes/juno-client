@@ -1,6 +1,11 @@
 extern crate rand;
 extern crate tokio;
 extern crate hyper;
+extern crate serde;
+#[macro_use]
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
 
 use std::thread;
 use std::time::Duration;
@@ -23,7 +28,7 @@ pub fn run(telemetry_url: &str) {
 
     // Setup request
     let client = Client::new();
-    let mut req = Request::new(Body::from(format!("{}", metric)));
+    let mut req = Request::new(Body::from(serde_json::to_string(&metric).unwrap()));
     *req.method_mut() = Method::POST;
     *req.uri_mut() = uri.clone();
 
@@ -43,7 +48,7 @@ pub fn run(telemetry_url: &str) {
 
     runtime.spawn(post);
 
-    thread::sleep(Duration::new(10, 0));
+    thread::sleep(Duration::new(3, 0));
   }
   
   // Shut down the tokio thread

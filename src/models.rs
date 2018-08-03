@@ -1,8 +1,10 @@
+extern crate serde_json;
 extern crate rand;
 
 use std::fmt;
 use rand::distributions::{Range, Sample};
 
+#[derive(Serialize)]
 pub struct MetricData {
   cpu: u32,
   memory: u32,
@@ -13,7 +15,7 @@ pub struct MetricData {
 impl MetricData {
   pub fn fake() -> MetricData {
     let mut cpu_range = Range::new(45, 100);
-    let mut memory_range = Range::new(2000, 5000);
+    let mut memory_range = Range::new(2000, 8000);
     let mut network_range = Range::new(10_000, 50_000);
     let mut rng = rand::thread_rng();
 
