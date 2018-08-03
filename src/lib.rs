@@ -16,6 +16,7 @@ pub fn run(telemetry_url: &str) {
   let mut runtime = Runtime::new().unwrap(); 
   let uri: Uri = telemetry_url.parse().ok().expect("Couldn't parse telemetry URI");
 
+  // main program loop
   loop {
     // Setup data
     let metric = MetricData::fake();
@@ -45,5 +46,6 @@ pub fn run(telemetry_url: &str) {
     thread::sleep(Duration::new(10, 0));
   }
   
+  // Shut down the tokio thread
   runtime.shutdown_on_idle().wait().unwrap(); 
 }
