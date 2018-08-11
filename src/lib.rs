@@ -1,6 +1,7 @@
 extern crate rand;
 extern crate tokio;
 extern crate hyper;
+extern crate uuid;
 extern crate serde;
 #[macro_use]
 extern crate serde_json;
@@ -9,6 +10,7 @@ extern crate serde_derive;
 
 use std::thread;
 use std::time::Duration;
+use uuid::Uuid;
 use hyper::{Client, Method, Request, Uri, Body};
 use hyper::rt::{self, Future, Stream};
 use tokio::runtime::Runtime;
@@ -18,13 +20,14 @@ mod models;
 use models::MetricData;
 
 pub fn run(telemetry_url: &str) {
+  let uuid = Uuid::new_v4();
   let mut runtime = Runtime::new().unwrap(); 
   let uri: Uri = telemetry_url.parse().ok().expect("Couldn't parse telemetry URI");
 
   // main program loop
   loop {
     // Setup data
-    let metric = MetricData::fake();
+    let metric = MetricData::fake(uuid);
 
     // Setup request
     let client = Client::new();
