@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Jon Grimes <jong@spiceworks.com>"]
 
 [dependencies]
+toml = "0.4"
 tokio = "0.1.7"
 hyper = "0.12"
 rand = "0.4"

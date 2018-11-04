@@ -19,9 +19,19 @@ mod models;
 
 use models::MetricData;
 
-pub fn run(telemetry_url: &str) {
-  let uuid = Uuid::new_v4();
+pub fn run(config_uuid: Option<Uuid>, telemetry_host: &str) {
+  // hyper run time setup
   let mut runtime = Runtime::new().unwrap(); 
+
+  // determine if agent has registered previously
+  let uuid = match config_uuid {
+    Some(id) => id,
+    None => {
+      println!("Generating new UUID");
+      Uuid::new_v4()
+    }
+  };
+  let telemetry_url = format!("{}/data", telemetry_host);
   let uri: Uri = telemetry_url.parse().ok().expect("Couldn't parse telemetry URI");
 
   // main program loop
