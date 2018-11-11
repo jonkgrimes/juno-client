@@ -67,3 +67,7 @@ pub fn run(config_uuid: Option<Uuid>, telemetry_host: &str) {
   // Shut down the tokio thread
   runtime.shutdown_on_idle().wait().unwrap(); 
 }
+
+fn register(runtime: Runtime) {
+  
+}
