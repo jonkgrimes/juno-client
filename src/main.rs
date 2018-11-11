@@ -12,7 +12,7 @@ use uuid::Uuid;
 const DEFAULT_HOST: &str = "http://localhost:8080";
 const CONFIG_FILE: &str =  "config.toml";
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Config {
     uuid: Option<String>,
 }

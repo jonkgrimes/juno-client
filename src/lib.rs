@@ -13,6 +13,7 @@ use std::time::Duration;
 use uuid::Uuid;
 use hyper::{Client, Method, Request, Uri, Body};
 use hyper::rt::{self, Future, Stream};
+use hyper::header::HeaderValue;
 use tokio::runtime::Runtime;
 
 mod models;
@@ -27,8 +28,7 @@ pub fn run(config_uuid: Option<Uuid>, telemetry_host: &str) {
   let uuid = match config_uuid {
     Some(id) => id,
     None => {
-      println!("Generating new UUID");
-      Uuid::new_v4()
+      register(&mut runtime, telemetry_host)
     }
   };
   let telemetry_url = format!("{}/data", telemetry_host);
@@ -68,6 +68,27 @@ pub fn run(config_uuid: Option<Uuid>, telemetry_host: &str) {
   runtime.shutdown_on_idle().wait().unwrap(); 
 }
 
-fn register(runtime: Runtime) {
-  
+fn register(runtime: &mut Runtime, telemetry_host: &str) -> Uuid {
+    let client = Client::new();
+    let telemetry_url = format!("{}/register", telemetry_host);
+    let uri: Uri = telemetry_url.parse().ok().expect("Couldn't parse telemetry URI");
+    let body = r#"{"hostname":"orion","ip":"10.10.40.3"}"#;
+    let mut req = Request::new(Body::from(body));
+    *req.method_mut() = Method::POST;
+    *req.uri_mut() = uri.clone();
+    req.headers_mut().insert(hyper::header::CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+    let register_req = client.request(req).and_then(|response| {
+      response.into_body().concat2()
+    }).and_then(|body| {
+      let s = std::str::from_utf8(&body).expect("Expected UTF-8 ins response");
+      println!("s = {}", s);
+      Ok(())
+    }).map_err(|_| {
+      eprintln!("An error occurred attempting to register the agent");
+    });
+
+    runtime.spawn(register_req);
+
+    Uuid::new_v4()
 }
