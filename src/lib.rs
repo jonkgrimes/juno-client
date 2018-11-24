@@ -3,22 +3,22 @@ extern crate tokio;
 extern crate hyper;
 extern crate uuid;
 extern crate serde;
-#[macro_use]
 extern crate serde_json;
-#[macro_use]
 extern crate serde_derive;
 
 use std::thread;
 use std::time::Duration;
 use uuid::Uuid;
 use hyper::{Client, Method, Request, Uri, Body};
-use hyper::rt::{self, Future, Stream};
+use hyper::rt::{Future, Stream};
 use hyper::header::HeaderValue;
 use tokio::runtime::Runtime;
+use serde_json::Value;
 
 mod models;
+mod hostname;
 
-use models::MetricData;
+use models::{MetricData, AgentRegistration};
 
 pub fn run(config_uuid: Option<Uuid>, telemetry_host: &str) {
   // hyper run time setup
@@ -72,7 +72,9 @@ fn register(runtime: &mut Runtime, telemetry_host: &str) -> Uuid {
     let client = Client::new();
     let telemetry_url = format!("{}/register", telemetry_host);
     let uri: Uri = telemetry_url.parse().ok().expect("Couldn't parse telemetry URI");
-    let body = r#"{"hostname":"orion","ip":"10.10.40.3"}"#;
+    let hostname = hostname::get_hostname().unwrap();
+    let registration = AgentRegistration::new(hostname, "10.10.40.3".into());
+    let body = serde_json::to_string(&registration).unwrap();
     let mut req = Request::new(Body::from(body));
     *req.method_mut() = Method::POST;
     *req.uri_mut() = uri.clone();
@@ -81,9 +83,10 @@ fn register(runtime: &mut Runtime, telemetry_host: &str) -> Uuid {
     let register_req = client.request(req).and_then(|response| {
       response.into_body().concat2()
     }).and_then(|body| {
-      let s = std::str::from_utf8(&body).expect("Expected UTF-8 ins response");
-      println!("s = {}", s);
-      Ok(())
+      let data = std::str::from_utf8(&body).expect("Expected UTF-8 ins response");
+      let json: Value = serde_json::from_str(data).unwrap();
+      let uuid: String = json["uuid"].as_str().unwrap().into();
+      Ok(uuid)
     }).map_err(|_| {
       eprintln!("An error occurred attempting to register the agent");
     });

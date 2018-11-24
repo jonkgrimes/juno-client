@@ -6,7 +6,6 @@ extern crate uuid;
 
 use std::fs;
 use juno_client::run;
-use toml::Value;
 use uuid::Uuid;
 
 const DEFAULT_HOST: &str = "http://localhost:8080";

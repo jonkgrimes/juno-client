@@ -5,6 +5,19 @@ extern crate uuid;
 use std::fmt;
 use uuid::Uuid;
 use rand::distributions::{Range, Sample};
+use serde_derive::*;
+
+#[derive(Serialize)]
+pub struct AgentRegistration {
+  hostname: String,
+  ip: String,
+}
+
+impl AgentRegistration {
+  pub fn new(hostname: String, ip: String) -> AgentRegistration {
+    AgentRegistration { hostname: hostname, ip: ip }
+  }
+}
 
 #[derive(Serialize)]
 pub struct MetricData {
