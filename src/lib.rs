@@ -82,16 +82,21 @@ fn register(runtime: &mut Runtime, telemetry_host: &str) -> Uuid {
 
     let register_req = client.request(req).and_then(|response| {
       response.into_body().concat2()
-    }).and_then(|body| {
+    }).and_then(move |body| {
       let data = std::str::from_utf8(&body).expect("Expected UTF-8 ins response");
       let json: Value = serde_json::from_str(data).unwrap();
-      let uuid: String = json["uuid"].as_str().unwrap().into();
+      let uuid = Uuid::parse_str(json["uuid"].as_str().unwrap()).unwrap();
+      println!("Registered agent as {}", uuid);
       Ok(uuid)
     }).map_err(|_| {
       eprintln!("An error occurred attempting to register the agent");
     });
 
-    runtime.spawn(register_req);
-
-    Uuid::new_v4()
+    match runtime.block_on(register_req) {
+      Ok(uuid) => uuid,
+      Err(error) => {
+        eprintln!("Encountered an error registering the agent: {:?}", error);
+        ::std::process::exit(-1);
+      }
+    }
 }
